@@ -1,0 +1,15 @@
+{
+	"configurations": [
+		{
+			"name": "Default",
+			"includePath": [
+				"${workspaceFolder}/extern/freetype2/include",
+				"${workspaceFolder}/extern/glfw/include",
+				"${workspaceFolder}/extern/openal-soft/include",
+				"${default}"
+			],
+			"defines": []
+		}
+	],
+	"version": 4
+}

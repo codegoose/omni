@@ -1,0 +1,25 @@
+name: hello
+version: "1.0-git"
+confinement: classic
+base: core20
+summary: Hello
+description: Hello, World!
+
+parts:
+  app:
+    plugin: cmake
+    cmake-generator: Ninja
+    source: .
+    source-type: local
+    build-packages:
+      - g++
+      - ninja-build
+      - libx11-dev
+      - xorg-dev
+    stage-packages:
+      - libx11-6
+      - libglx-mesa0
+
+apps:
+  app:
+    command: root/parts/app/src/bin/hello
