@@ -1,0 +1,4 @@
+name: "Build for web"
+runs:
+  using: "docker"
+  image: "dockerfile"

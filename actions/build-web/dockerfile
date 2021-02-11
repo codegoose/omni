@@ -1,0 +1,7 @@
+FROM emscripten/emsdk
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+RUN chmod +x /emsdk/emsdk
+RUN chmod +x /emsdk/emsdk_env.sh
+RUN chmod +x /emsdk/upstream/emscripten/emcmake
+ENTRYPOINT ["/entrypoint.sh"]
