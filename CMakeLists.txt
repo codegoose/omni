@@ -36,3 +36,5 @@ else()
 	endif()
 	target_link_libraries(hello PUBLIC freetype glfw OpenAL)
 endif()
+
+install(TARGETS hello RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin")
