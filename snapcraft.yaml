@@ -18,7 +18,9 @@ parts:
       - xorg-dev
     stage-packages:
       - libx11-6
-      - libglx-mesa0
+      - libgl1
+      - libglvnd0
+      - libglx0
 
 apps:
   app:
