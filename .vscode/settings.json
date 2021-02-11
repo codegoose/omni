@@ -4,5 +4,5 @@
 	"editor.insertSpaces": false,
 	"C_Cpp.vcpkg.enabled": false,
 	"editor.detectIndentation": true,
-	"cmake.configureOnOpen": false
+	"files.eol": "\n"
 }
