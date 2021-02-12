@@ -7,3 +7,12 @@
 [submodule "extern/freetype2"]
 	path = extern/freetype2
 	url = https://github.com/codegoose/freetype2.git
+[submodule "extern/json"]
+	path = extern/json
+	url = https://github.com/nlohmann/json.git
+[submodule "extern/spdlog"]
+	path = extern/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "extern/imgui"]
+	path = extern/imgui
+	url = https://github.com/ocornut/imgui.git

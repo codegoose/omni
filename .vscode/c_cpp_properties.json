@@ -3,9 +3,15 @@
 		{
 			"name": "Default",
 			"includePath": [
+				"${workspaceFolder}/extern/include",
 				"${workspaceFolder}/extern/freetype2/include",
+				"${workspaceFolder}/extern/glad/include",
 				"${workspaceFolder}/extern/glfw/include",
+				"${workspaceFolder}/extern/imgui",
+				"${workspaceFolder}/extern/imgui/misc/freetype",
+				"${workspaceFolder}/extern/json/include",
 				"${workspaceFolder}/extern/openal-soft/include",
+				"${workspaceFolder}/extern/spdlog/include",
 				"${default}"
 			],
 			"defines": []
