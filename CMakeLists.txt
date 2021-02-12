@@ -3,13 +3,19 @@ cmake_minimum_required(VERSION 3.10)
 project(hello)
 
 set(CMAKE_CXX_STANDARD 17)
+
+# The generators at the end of these paths prevent VS Build Tools
+# from just putting where it wants.
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin$<0:>")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin$<0:>")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib$<0:>")
+
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "CMake should assume static libs.")
 set(BUILD_TESTING OFF CACHE BOOL "Don't build testing programs.")
 set(ALSOFT_EXAMPLES OFF CACHE BOOL "Don't build OpenAL examples.")
 set(ALSOFT_UTILS OFF CACHE BOOL "Don't build OpenAL utility programs.")
+set(ALSOFT_UPDATE_BUILD_VERSION OFF CACHE BOOL "Don't let OpenAL update it's version all the time.")
 set(LIBTYPE STATIC CACHE STRING "Tell OpenAL it's a static lib.")
 
 add_executable(
@@ -22,7 +28,6 @@ add_subdirectory(extern/freetype2)
 target_include_directories(hello PUBLIC "${PROJECT_SOURCE_DIR}/extern/json/include")
 
 if(EMSCRIPTEN)
-	set(CMAKE_INVOKE emcmake cmake)
 	set(USE_FLAGS "-s USE_GLFW=3 -s")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
