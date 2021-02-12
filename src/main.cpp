@@ -8,6 +8,8 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
+#include <imgui.h>
+#include <imgui_freetype.h>
 #include <spdlog/spdlog.h>
 #include <fire.hpp>
 
