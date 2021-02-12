@@ -1,5 +1,3 @@
-#include <iostream>
-
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #else
@@ -10,11 +8,21 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
+#include <spdlog/spdlog.h>
+#include <fire.hpp>
+
 static GLFWwindow *glfw_window = 0;
 static ALCdevice *alc_device = 0;
 static ALCcontext *alc_context = 0;
 
+static bool arg_gl_enable_dbg = false;
+
+namespace app {
+	void on_loop();
+}
+
 static void loop() {
+	app::on_loop();
 	glClearColor(.7, .5, .3, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(glfw_window);
@@ -29,8 +37,15 @@ static int prepare() {
 	glfwMakeContextCurrent(glfw_window);
 	#ifndef __EMSCRIPTEN__
 	if (gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0) {
-		std::cout << "Failed to GL extensions." << std::endl;
+		spdlog::error("Failed to GL extensions.");
 		return 3;
+	}
+	if (arg_gl_enable_dbg) {
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback([](GLenum src, GLenum type, GLuint id, GLenum sev, GLsizei len, const GLchar *msg, const void *user_ptr) {
+			spdlog::error("GL error #{}: {}", id, msg);
+		}, 0);
+		spdlog::info("GL debugging enabled.");
 	}
 	#if defined WIN32 || defined _WIN32
 	// On Windows, event polling will not return while the window is being resized.
@@ -43,12 +58,12 @@ static int prepare() {
 	#endif // Not Emscripten
 	alc_device = alcOpenDevice(0);
 	if (!alc_device) {
-		std::cout << "Failed to open default audio device." << std::endl;
+		spdlog::warn("Unable to open default audio device.");
 		return 4;
 	}
 	alc_context = alcCreateContext(alc_device, 0);
 	if (!alcMakeContextCurrent(alc_context)) {
-		std::cout << "Failed to activate audio context." << std::endl;
+		spdlog::warn("Unable to activate audio context.");
 		return 5;
 	}
 	return 0;
@@ -73,8 +88,12 @@ static void run() {
 	#endif
 }
 
-int main() {
+int fired_main(bool dbg_gl = fire::arg({ "-g", "--gldbg", "Enable GL error debug messages." })) {
+	if (dbg_gl) arg_gl_enable_dbg = true;
 	std::atexit(cleanup);
 	if (int prep_res = prepare(); prep_res != 0) return prep_res;
 	run();
+	return 0;
 }
+
+FIRE(fired_main, "This is an epic program.")

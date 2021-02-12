@@ -20,10 +20,11 @@ set(LIBTYPE STATIC CACHE STRING "Tell OpenAL it's a static lib.")
 
 add_executable(
 	hello
-	main.cpp
+	src/main.cpp
+	src/app.cpp
 )
 
-target_include_directories(hello PUBLIC "extern/json/include")
+target_include_directories(hello PUBLIC "extern/include" "extern/json/include" "extern/spdlog/include")
 
 if(NOT EMSCRIPTEN)
 	add_library(
@@ -37,6 +38,7 @@ if(NOT EMSCRIPTEN)
 endif()
 
 add_subdirectory(extern/freetype2)
+add_subdirectory(extern/spdlog)
 
 if(EMSCRIPTEN)
 	set(USE_FLAGS "-s USE_GLFW=3 -s")
