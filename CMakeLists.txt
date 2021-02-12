@@ -23,9 +23,20 @@ add_executable(
 	main.cpp
 )
 
-add_subdirectory(extern/freetype2)
+target_include_directories(hello PUBLIC "extern/json/include")
 
-target_include_directories(hello PUBLIC "${PROJECT_SOURCE_DIR}/extern/json/include")
+if(NOT EMSCRIPTEN)
+	add_library(
+		glad
+		STATIC
+		extern/glad/src/glad.c
+	)
+	target_include_directories(glad PUBLIC "extern/glad/include") # GL 4.5
+	target_include_directories(hello PUBLIC "extern/glad/include")
+	target_link_libraries(hello PUBLIC glad)
+endif()
+
+add_subdirectory(extern/freetype2)
 
 if(EMSCRIPTEN)
 	set(USE_FLAGS "-s USE_GLFW=3 -s")
