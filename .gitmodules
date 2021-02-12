@@ -7,3 +7,6 @@
 [submodule "extern/freetype2"]
 	path = extern/freetype2
 	url = https://github.com/codegoose/freetype2.git
+[submodule "extern/json"]
+	path = extern/json
+	url = https://github.com/nlohmann/json.git

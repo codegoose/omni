@@ -19,6 +19,8 @@ add_executable(
 
 add_subdirectory(extern/freetype2)
 
+target_include_directories(hello PUBLIC "${PROJECT_SOURCE_DIR}/extern/json/include")
+
 if(EMSCRIPTEN)
 	set(CMAKE_INVOKE emcmake cmake)
 	set(USE_FLAGS "-s USE_GLFW=3 -s")
