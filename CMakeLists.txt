@@ -20,10 +20,43 @@ set(LIBTYPE STATIC CACHE STRING "Tell OpenAL it's a static lib.")
 
 add_executable(
 	hello
-	main.cpp
+	src/main.cpp
+	src/app.cpp
 )
 
-target_include_directories(hello PUBLIC "extern/json/include")
+add_library(
+	imgui
+	STATIC
+	extern/imgui/imgui_demo.cpp
+	extern/imgui/imgui_draw.cpp
+	extern/imgui/imgui_tables.cpp
+	extern/imgui/imgui_widgets.cpp
+	extern/imgui/imgui.cpp
+	extern/imgui/backends/imgui_impl_glfw.cpp
+	extern/imgui/backends/imgui_impl_opengl3.cpp
+	extern/imgui/misc/freetype/imgui_freetype.cpp
+)
+
+if(NOT EMSCRIPTEN)
+	target_include_directories(imgui PUBLIC "extern/glfw/include")
+endif()
+
+target_include_directories(
+	imgui
+	PUBLIC
+	"extern/freetype2/include"
+	"extern/glad/include"
+	"extern/imgui"
+	"extern/imgui/misc/freetype"
+)
+
+target_include_directories(
+	hello
+	PUBLIC
+	"extern/include"
+	"extern/json/include"
+	"extern/spdlog/include"
+)
 
 if(NOT EMSCRIPTEN)
 	add_library(
@@ -37,6 +70,7 @@ if(NOT EMSCRIPTEN)
 endif()
 
 add_subdirectory(extern/freetype2)
+add_subdirectory(extern/spdlog)
 
 if(EMSCRIPTEN)
 	set(USE_FLAGS "-s USE_GLFW=3 -s")
@@ -52,7 +86,9 @@ else()
 	else()
 		target_link_libraries(hello PUBLIC GL)
 	endif()
-	target_link_libraries(hello PUBLIC freetype glfw OpenAL)
+	target_link_libraries(hello PUBLIC glfw OpenAL)
 endif()
+
+target_link_libraries(hello PUBLIC imgui freetype)
 
 install(TARGETS hello RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin")
