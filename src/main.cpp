@@ -2,6 +2,7 @@
 #include <emscripten.h>
 #else
 #include <glad/glad.h>
+#include <fire.hpp>
 #endif
 
 #include <GLFW/glfw3.h>
@@ -98,4 +99,14 @@ int fired_main(bool dbg_gl = fire::arg({ "-g", "--gldbg", "Enable GL error debug
 	return 0;
 }
 
+#ifdef __EMSCRIPTEN__
+int main() {
+	return begin();
+}
+#else // Emscripten doesn't like Fire.
+int fired_main(bool dbg_gl = fire::arg({ "-g", "--gldbg", "Enable GL error debug messages." })) {
+	if (dbg_gl) arg_gl_enable_dbg = true;
+	return begin();
+}
 FIRE(fired_main, "This is an epic program.")
+#endif
