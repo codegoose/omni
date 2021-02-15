@@ -12,7 +12,8 @@
 #include <imgui.h>
 #include <imgui_freetype.h>
 #include <spdlog/spdlog.h>
-#include <fire.hpp>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/fmt/bin_to_hex.h>
 
 static GLFWwindow *glfw_window = 0;
 static ALCdevice *alc_device = 0;
@@ -33,7 +34,7 @@ static void loop() {
 }
 
 static int prepare() {
-	glfwSetErrorCallback([](int error, const char *desc) { std::cerr << "GLFW error #" << error << ": " << desc << std::endl; });
+	glfwSetErrorCallback([](int error, const char *desc) { spdlog::error("GLFW error #{}: {}", error, desc); });
 	if (glfwInit() == GLFW_FALSE) return 1;
 	glfw_window = glfwCreateWindow(800, 600, "GLFW", 0, 0);
 	if (!glfw_window) return 2;
@@ -73,12 +74,22 @@ static int prepare() {
 }
 
 static void cleanup() {
-	if (alc_context) alcDestroyContext(alc_context);
+	if (alc_context) {
+		spdlog::debug("Destroying ALC context...");
+		alcDestroyContext(alc_context);
+	}
 	alc_context = 0;
-	if (alc_device) alcCloseDevice(alc_device);
+	if (alc_device) {
+		spdlog::debug("Closing ALC device...");
+		alcCloseDevice(alc_device);
+	}
 	alc_device = 0;
-	if (glfw_window) glfwDestroyWindow(glfw_window);
+	if (glfw_window) {
+		spdlog::debug("Destroying GLFW window...");
+		glfwDestroyWindow(glfw_window);
+	}
 	glfw_window = 0;
+	spdlog::debug("Terminating GLFW...");
 	glfwTerminate();
 }
 
@@ -91,12 +102,33 @@ static void run() {
 	#endif
 }
 
-int fired_main(bool dbg_gl = fire::arg({ "-g", "--gldbg", "Enable GL error debug messages." })) {
-	if (dbg_gl) arg_gl_enable_dbg = true;
-	std::atexit(cleanup);
-	if (int prep_res = prepare(); prep_res != 0) return prep_res;
-	run();
-	return 0;
+static void setup_spdlog() {
+	auto def_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	#ifndef __EMSCRIPTEN__ // No members under Emscripten.
+	def_sink->set_color(spdlog::level::debug, def_sink->WHITE);
+	def_sink->set_color(spdlog::level::info, def_sink->WHITE);
+	#endif
+	auto def_log = std::make_shared<spdlog::logger>("main", def_sink);
+	def_log->set_pattern("%^[%L] [%t] [%H:%M:%S] %v%$");
+	def_log->set_level(spdlog::level::debug);
+	spdlog::set_default_logger(def_log);
+}
+
+int begin() {
+	setup_spdlog();
+	auto return_code = []() -> int {
+		spdlog::info("Starting up...");
+		if (int prep_res = prepare(); prep_res != 0) {
+			spdlog::error("Prepare routine failed.");
+			return prep_res;
+		}
+		spdlog::info("Prepare routine completed. Running...");
+		run();
+		spdlog::info("Ending...");
+		return 0;
+	}();
+	cleanup();
+	return return_code;
 }
 
 #ifdef __EMSCRIPTEN__
