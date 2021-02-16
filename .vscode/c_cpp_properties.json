@@ -8,6 +8,7 @@
 				"${workspaceFolder}/extern/glad/include",
 				"${workspaceFolder}/extern/glfw/include",
 				"${workspaceFolder}/extern/imgui",
+				"${workspaceFolder}/extern/imgui/backends",
 				"${workspaceFolder}/extern/imgui/misc/freetype",
 				"${workspaceFolder}/extern/json/include",
 				"${workspaceFolder}/extern/openal-soft/include",

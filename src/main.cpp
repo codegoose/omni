@@ -12,6 +12,8 @@
 #include <AL/alc.h>
 
 #include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <imgui_freetype.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -21,6 +23,7 @@
 static GLFWwindow *glfw_window = 0;
 static ALCdevice *alc_device = 0;
 static ALCcontext *alc_context = 0;
+static ImGuiContext *imgui_context = 0;
 
 static bool arg_gl_enable_dbg = false;
 
@@ -29,16 +32,51 @@ namespace app {
 }
 
 static void loop() {
+	int vp_w, vp_h;
+	glfwGetFramebufferSize(glfw_window, &vp_w, &vp_h);
 	app::on_loop();
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow();
+	ImGui::Render();
+	glViewport(0, 0, vp_w, vp_h);
 	glClearColor(.7, .5, .3, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glfwSwapBuffers(glfw_window);
 	glfwPollEvents();
+}
+
+static void gl_debug_message_cb(GLenum src, GLenum type, GLuint id, GLenum sev, GLsizei len, const GLchar *msg, const void *user_ptr) {
+	switch (sev) {
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			spdlog::debug("[GL #{}] {}", type, msg);
+			break;
+		case GL_DEBUG_SEVERITY_LOW:
+			spdlog::warn("[GL #{}] {}", type, msg);
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			spdlog::error("[GL #{}] {}", type, msg);
+			break;
+		case GL_DEBUG_SEVERITY_HIGH:
+			spdlog::critical("[GL #{}] {}", type, msg);
+			break;
+	}
 }
 
 static int prepare() {
 	glfwSetErrorCallback([](int error, const char *desc) { spdlog::error("GLFW error #{}: {}", error, desc); });
 	if (glfwInit() == GLFW_FALSE) return 1;
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	#ifdef __EMSCRIPTEN__
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	#else
+	if (arg_gl_enable_dbg) glfwWindowHint(GLFW_CONTEXT_DEBUG, GLFW_TRUE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+	#endif
 	glfw_window = glfwCreateWindow(800, 600, "GLFW", 0, 0);
 	if (!glfw_window) return 2;
 	glfwMakeContextCurrent(glfw_window);
@@ -48,10 +86,9 @@ static int prepare() {
 		return 3;
 	}
 	if (arg_gl_enable_dbg) {
+		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		glDebugMessageCallback([](GLenum src, GLenum type, GLuint id, GLenum sev, GLsizei len, const GLchar *msg, const void *user_ptr) {
-			spdlog::error("GL error #{}: {}", id, msg);
-		}, 0);
+		glDebugMessageCallback(gl_debug_message_cb, 0);
 		spdlog::info("GL debugging enabled.");
 	}
 	#if defined WIN32 || defined _WIN32
@@ -63,6 +100,7 @@ static int prepare() {
 	glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow *window, int w, int h) { loop(); });
 	#endif // Not Windows
 	#endif // Not Emscripten
+	spdlog::debug("GL: {} via {}", glGetString(GL_VERSION), glGetString(GL_RENDERER));
 	alc_device = alcOpenDevice(0);
 	if (!alc_device) {
 		spdlog::warn("Unable to open default audio device.");
@@ -73,10 +111,31 @@ static int prepare() {
 		spdlog::warn("Unable to activate audio context.");
 		return 5;
 	}
+	imgui_context = ImGui::CreateContext();
+	if (!imgui_context) {
+		spdlog::error("Unable to create IMGUI context.");
+		return 6;
+	}
+	if (!ImGui_ImplGlfw_InitForOpenGL(glfw_window, true)) {
+		spdlog::error("Unable to initialize IMGUI GLFW GL backend.");
+		return 7;
+	}
+	if (!ImGui_ImplOpenGL3_Init("#version 100")) {
+		spdlog::error("Unable to initialize IMGUI GL3 backend.");
+		return 8;
+	}
 	return 0;
 }
 
 static void cleanup() {
+	if (imgui_context) {
+		spdlog::debug("Shutting down IMGUI backend...");
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		spdlog::debug("Destroying IMGUI context...");
+		ImGui::DestroyContext(imgui_context);
+	}
+	imgui_context = 0;
 	if (alc_context) {
 		spdlog::debug("Destroying ALC context...");
 		alcDestroyContext(alc_context);
@@ -118,6 +177,7 @@ static void setup_spdlog() {
 }
 
 int begin() {
+	IMGUI_CHECKVERSION();
 	setup_spdlog();
 	auto return_code = []() -> int {
 		spdlog::info("Starting up...");

@@ -47,6 +47,7 @@ target_include_directories(
 	"extern/freetype2/include"
 	"extern/glad/include"
 	"extern/imgui"
+	"extern/imgui/backends"
 	"extern/imgui/misc/freetype"
 )
 
