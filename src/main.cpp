@@ -5,6 +5,8 @@
 #include <fire.hpp>
 #endif
 
+#include <vector>
+
 #include <GLFW/glfw3.h>
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -13,6 +15,7 @@
 #include <imgui_freetype.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/daily_file_sink.h>
 #include <spdlog/fmt/bin_to_hex.h>
 
 static GLFWwindow *glfw_window = 0;
@@ -103,13 +106,13 @@ static void run() {
 }
 
 static void setup_spdlog() {
-	auto def_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	#ifndef __EMSCRIPTEN__ // No members under Emscripten.
-	def_sink->set_color(spdlog::level::debug, def_sink->WHITE);
-	def_sink->set_color(spdlog::level::info, def_sink->WHITE);
+	std::vector<spdlog::sink_ptr> sinks;
+	sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+	#ifndef __EMSCRIPTEN__
+	sinks.push_back(std::make_shared<spdlog::sinks::daily_file_sink_mt>("log", 0, 0));
 	#endif
-	auto def_log = std::make_shared<spdlog::logger>("main", def_sink);
-	def_log->set_pattern("%^[%L] [%t] [%H:%M:%S] %v%$");
+	auto def_log = std::make_shared<spdlog::logger>("main", sinks.begin(), sinks.end());
+	def_log->set_pattern("[%^%L%$] [%t] [%H:%M:%S] %v");
 	def_log->set_level(spdlog::level::debug);
 	spdlog::set_default_logger(def_log);
 }
