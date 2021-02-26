@@ -27,6 +27,11 @@ static ImGuiContext *imgui_context = 0;
 
 static bool arg_gl_enable_dbg = false;
 
+namespace omni::file {
+	bool initialize();
+	void shutdown();
+}
+
 namespace app {
 	void on_loop();
 }
@@ -124,10 +129,15 @@ static int prepare() {
 		spdlog::error("Unable to initialize IMGUI GL3 backend.");
 		return 8;
 	}
+	if (!omni::file::initialize()) {
+		spdlog::error("Failed to initialize file subsystem.");
+		return 9;
+	}
 	return 0;
 }
 
 static void cleanup() {
+	omni::file::shutdown();
 	if (imgui_context) {
 		spdlog::debug("Shutting down IMGUI backend...");
 		ImGui_ImplOpenGL3_Shutdown();

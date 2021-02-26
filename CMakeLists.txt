@@ -20,7 +20,8 @@ set(LIBTYPE STATIC CACHE STRING "Tell OpenAL it's a static lib.")
 
 add_executable(
 	hello
-	src/main.cpp
+	src/omni.cpp
+	src/omni-file.cpp
 	src/app.cpp
 )
 
@@ -75,9 +76,9 @@ add_subdirectory(extern/spdlog)
 
 if(EMSCRIPTEN)
 	set(USE_FLAGS "-s USE_GLFW=3 -s")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} -pthread")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} -pthread")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS} -pthread")
 	set(CMAKE_EXECUTABLE_SUFFIX .html)
 else()
 	add_subdirectory(extern/glfw)
